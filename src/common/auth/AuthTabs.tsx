@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserStore } from "@/store/useUserStore";
+import { useRouter } from "next/navigation";
 
 // ✅ Zod schemas
 const signupSchema = z.object({
@@ -36,6 +37,7 @@ const loginSchema = z.object({
 
 export function AuthTabs() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   // ✅ Zustand store for user
   const { setUser } = useUserStore();
 
@@ -86,7 +88,7 @@ export function AuthTabs() {
 
       toast.success("Logged in successfully!");
       // optionally redirect
-      // router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Invalid email or password");
     } finally {
