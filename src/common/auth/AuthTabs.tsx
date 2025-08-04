@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUserStore } from "@/store/useUserStore";
 
 // ✅ Zod schemas
 const signupSchema = z.object({
@@ -35,6 +36,8 @@ const loginSchema = z.object({
 
 export function AuthTabs() {
   const [loading, setLoading] = useState(false);
+  // ✅ Zustand store for user
+  const { setUser } = useUserStore();
 
   // Sign Up Form
   const {
@@ -78,6 +81,8 @@ export function AuthTabs() {
     try {
       setLoading(true);
       const res = await axiosInstance.post("/user/login", data);
+      // Set user in Zustand store
+      setUser(res.data.user);
 
       toast.success("Logged in successfully!");
       // optionally redirect
