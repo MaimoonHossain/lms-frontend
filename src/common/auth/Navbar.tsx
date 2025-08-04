@@ -24,7 +24,7 @@ export default function Navbar() {
     try {
       const res = await axiosInstance.get("/user/logout");
 
-      if (res.data.success) {
+      if (res.status === 200) {
         clearUser();
         toast.success("Logged out successfully");
         router.push("/login");
@@ -66,6 +66,9 @@ export default function Navbar() {
             side='bottom'
             sideOffset={8}
           >
+            <button className='w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded'>
+              <Link href='/profile'>Profile</Link>
+            </button>
             <button
               onClick={handleLogout}
               className='w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded'
