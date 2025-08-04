@@ -31,6 +31,12 @@ export default function HeroSection() {
             Search
           </Button>
         </div>
+        {/* Explore Courses Button */}
+        <div className='mt-8'>
+          <Button className='h-12 w-50 rounded-xl px-6 bg-blue-600 text-white hover:bg-blue-700 transition duration-200'>
+            Explore Courses
+          </Button>
+        </div>
       </div>
     </section>
   );
