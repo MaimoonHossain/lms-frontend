@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -20,12 +21,15 @@ import {
 } from "@/components/ui/select";
 import { courseSchema, CourseFormValues } from "@/lib/validation/courseSchema";
 import toast from "react-hot-toast";
+import axiosInstance from "@/lib/axiosInstance";
 
 interface Props {
-  onSubmit: (data: CourseFormValues) => void;
+  onSuccess?: () => void;
 }
 
-export const CourseFormModal: React.FC<Props> = ({ onSubmit }) => {
+export const CourseFormModal: React.FC<Props> = ({ onSuccess }) => {
+  const [open, setOpen] = useState(false);
+
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -39,14 +43,22 @@ export const CourseFormModal: React.FC<Props> = ({ onSubmit }) => {
     },
   });
 
-  const handleSubmit = (values: CourseFormValues) => {
-    onSubmit(values);
-    toast.success("Course created!");
-    form.reset();
+  const handleSubmit: (values: CourseFormValues) => Promise<void> = async (
+    values
+  ) => {
+    try {
+      await axiosInstance.post("/course/create", values);
+      toast.success("Course created!");
+      form.reset();
+      setOpen(false); // ✅ close modal
+      onSuccess?.();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to create course");
+    }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>Create New Course</Button>
       </DialogTrigger>
@@ -62,7 +74,12 @@ export const CourseFormModal: React.FC<Props> = ({ onSubmit }) => {
             {...form.register("description")}
           />
           <Input placeholder='Category' {...form.register("category")} />
-          <Select onValueChange={(val) => form.setValue("level", val as any)}>
+          <Select
+            defaultValue='beginner'
+            onValueChange={(val) =>
+              form.setValue("level", val as CourseFormValues["level"])
+            }
+          >
             <SelectTrigger>
               <SelectValue placeholder='Select Level' />
             </SelectTrigger>
