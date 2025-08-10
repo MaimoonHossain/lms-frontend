@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 import axiosInstance from "@/lib/axiosInstance";
 import { DummyAvatar } from "@/assets/images";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function ProfilePage() {
   const [userData, setUserData] = useState({
@@ -33,14 +34,27 @@ export default function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [open, setOpen] = useState(false);
+  const { setUser } = useUserStore();
 
   const fetchUserProfile = async () => {
     try {
       const res = await axiosInstance.get("/user/profile");
-      const { name, email, role, photoUrl } = res.data;
+      const { _id, name, email, role, photoUrl, token } = res.data;
+
+      // Update local component state
       setUserData({ name, email, role, profilePhoto: photoUrl });
       setFormState({ name, email });
       setPreviewUrl(photoUrl || DummyAvatar);
+
+      // ✅ Update global Zustand store
+      setUser({
+        id: _id,
+        name,
+        email,
+        role,
+        photoUrl,
+        token: token || useUserStore.getState().user?.token || "", // preserve token if not returned
+      });
     } catch (err) {
       toast.error("Error fetching user profile");
     }
