@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Dialog } from "@radix-ui/react-dialog";
 import {
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -30,14 +30,17 @@ export default function ProfilePage() {
     email: "",
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const [open, setOpen] = useState(false);
 
   const fetchUserProfile = async () => {
     try {
       const res = await axiosInstance.get("/user/profile");
-      const { name, email, role, profilePhoto } = res.data;
-      setUserData({ name, email, role, profilePhoto });
-      setFormState({ name, email }); // for editing
+      const { name, email, role, photoUrl } = res.data;
+      setUserData({ name, email, role, profilePhoto: photoUrl });
+      setFormState({ name, email });
+      setPreviewUrl(photoUrl || DummyAvatar);
     } catch (err) {
       toast.error("Error fetching user profile");
     }
@@ -47,17 +50,32 @@ export default function ProfilePage() {
     fetchUserProfile();
   }, []);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file)); // temporary preview
+    }
+  };
+
   const handleSave = async () => {
     try {
-      const res = await axiosInstance.patch("/user/profile/update", {
-        name: formState.name,
-        email: formState.email,
+      const formData = new FormData();
+      formData.append("name", formState.name);
+      formData.append("email", formState.email);
+      if (selectedFile) {
+        formData.append("profilePhoto", selectedFile);
+      }
+
+      const res = await axiosInstance.patch("/user/profile/update", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (res.status === 200) {
         toast.success("Profile updated");
         setOpen(false);
-        fetchUserProfile(); // refresh UI
+        fetchUserProfile();
+        setSelectedFile(null);
       } else {
         toast.error("Update failed");
       }
@@ -96,6 +114,24 @@ export default function ProfilePage() {
                 <DialogTitle>Edit Profile</DialogTitle>
               </DialogHeader>
               <div className='grid gap-4 py-4'>
+                {/* Profile Photo Upload */}
+                <div className='flex flex-col items-center gap-3'>
+                  <Image
+                    src={previewUrl || DummyAvatar}
+                    alt='Profile Preview'
+                    width={80}
+                    height={80}
+                    className='rounded-full object-cover w-20 h-20'
+                  />
+                  <Input
+                    id='profilePhoto'
+                    type='file'
+                    accept='image/*'
+                    onChange={handleFileChange}
+                  />
+                </div>
+
+                {/* Name Input */}
                 <div className='grid grid-cols-4 items-center gap-4'>
                   <Label htmlFor='name' className='text-right'>
                     Name
@@ -109,6 +145,8 @@ export default function ProfilePage() {
                     className='col-span-3'
                   />
                 </div>
+
+                {/* Email Input */}
                 <div className='grid grid-cols-4 items-center gap-4'>
                   <Label htmlFor='email' className='text-right'>
                     Email
@@ -123,6 +161,7 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
+
               <div className='flex justify-end gap-2'>
                 <DialogClose asChild>
                   <Button variant='ghost'>Cancel</Button>

@@ -6,6 +6,7 @@ type User = {
   name: string; // optional, since not in login response
   email: string;
   role: string;
+  photoUrl?: string; // optional, since not in login response
   token: string; // ✅ Add token to store
 };
 

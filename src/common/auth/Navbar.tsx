@@ -47,7 +47,7 @@ export default function Navbar() {
           <PopoverTrigger asChild>
             <button className='flex items-center space-x-2 cursor-pointer'>
               <Image
-                src={user?.profile?.profilePhoto || DummyAvatar}
+                src={user?.photoUrl || DummyAvatar}
                 alt='Avatar'
                 width={32}
                 height={32}
