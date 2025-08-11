@@ -25,6 +25,7 @@ import axiosInstance from "@/lib/axiosInstance";
 
 interface Props {
   onSuccess?: () => void;
+  onSubmit?: (data: CourseFormValues) => void;
 }
 
 export const CourseFormModal: React.FC<Props> = ({ onSuccess }) => {

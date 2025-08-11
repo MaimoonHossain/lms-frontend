@@ -1,41 +1,67 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 
 import { CourseFormValues } from "@/lib/validation/courseSchema";
 import { CourseFormModal } from "@/common/courses/CourseFormModal";
 import { CourseTable } from "@/common/courses/CourseTable";
 import { CourseActions } from "@/common/courses/CourseActions";
+import axiosInstance from "@/lib/axiosInstance";
 
 interface Course {
+  _id: string;
   title: string;
-  price: string;
+  price?: string;
   status: string;
+  isPublished?: boolean; // Optional, depending on your backend model
 }
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      title: "Mastering Docker: From Beginner to Pro",
-      price: "499₹",
-      status: "Published",
-    },
-    {
-      title: "Mastering Next.js: Full-Stack Web Development",
-      price: "239₹",
-      status: "Published",
-    },
-  ]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const res = await axiosInstance.get("/course");
+        const data = res.data;
+
+        // Map courses from backend to frontend format
+        const mappedCourses = data?.map((course: Course) => ({
+          _id: course._id,
+          title: course.title,
+          price: "Free", // Adjust or add price field to your model/backend if needed
+          status: course.status ?? (course.isPublished ? "Published" : "Draft"),
+        }));
+
+        setCourses(mappedCourses);
+        setError(null);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCourses();
+  }, []);
 
   const handleCreateCourse = (data: CourseFormValues) => {
     setCourses((prev) => [
       ...prev,
       {
+        _id: Date.now().toString(), // Temporary id, replace with backend id after creation
         title: data.title,
         price: "0₹",
         status: data.isPublished ? "Published" : "Draft",
       },
     ]);
   };
+
+  if (loading) return <p>Loading courses...</p>;
+  if (error) return <p className='text-red-600'>Error: {error}</p>;
+  if (!courses || courses.length === 0) return <p>No courses found.</p>;
 
   return (
     <div className='p-6'>
