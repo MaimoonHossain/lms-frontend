@@ -21,29 +21,29 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchCourses() {
-      try {
-        const res = await axiosInstance.get("/course");
-        const data = res.data;
+  const fetchCourses = async () => {
+    try {
+      const res = await axiosInstance.get("/course");
+      const data = res.data;
 
-        // Map courses from backend to frontend format
-        const mappedCourses = data?.map((course: Course) => ({
-          _id: course._id,
-          title: course.title,
-          price: "Free", // Adjust or add price field to your model/backend if needed
-          status: course.status ?? (course.isPublished ? "Published" : "Draft"),
-        }));
+      // Map courses from backend to frontend format
+      const mappedCourses = data?.map((course: Course) => ({
+        _id: course._id,
+        title: course.title,
+        price: "Free", // Adjust or add price field to your model/backend if needed
+        status: course.status ?? (course.isPublished ? "Published" : "Draft"),
+      }));
 
-        setCourses(mappedCourses);
-        setError(null);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
+      setCourses(mappedCourses);
+      setError(null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchCourses();
   }, []);
 
@@ -66,7 +66,10 @@ export default function CoursesPage() {
   return (
     <div className='p-6'>
       <div className='mb-4 flex justify-between items-center'>
-        <CourseFormModal onSubmit={handleCreateCourse} />
+        <CourseFormModal
+          onSubmit={handleCreateCourse}
+          fetchCourses={fetchCourses}
+        />
       </div>
       <CourseTable
         data={courses}
