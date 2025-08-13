@@ -26,9 +26,13 @@ import axiosInstance from "@/lib/axiosInstance";
 interface Props {
   onSuccess?: () => void;
   onSubmit?: (data: CourseFormValues) => void;
+  fetchCourses: () => void;
 }
 
-export const CourseFormModal: React.FC<Props> = ({ onSuccess }) => {
+export const CourseFormModal: React.FC<Props> = ({
+  onSuccess,
+  fetchCourses,
+}) => {
   const [open, setOpen] = useState(false);
 
   const form = useForm<CourseFormValues>({
@@ -53,6 +57,7 @@ export const CourseFormModal: React.FC<Props> = ({ onSuccess }) => {
       form.reset();
       setOpen(false); // ✅ close modal
       onSuccess?.();
+      fetchCourses();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to create course");
     }
