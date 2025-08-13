@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -134,16 +134,23 @@ export default function EditCoursePage() {
 
         <Input placeholder='Thumbnail URL' {...form.register("thumbnail")} />
 
-        <div className='flex items-center space-x-4'>
-          <label className='flex items-center space-x-2'>
-            <input
-              type='checkbox'
-              checked={form.getValues("isPublished")}
-              onChange={(e) => form.setValue("isPublished", e.target.checked)}
-            />
-            <span>Publish Course</span>
-          </label>
-        </div>
+        <Controller
+          name='isPublished'
+          control={form.control}
+          render={({ field }) => (
+            <label className='flex items-center space-x-2'>
+              <input
+                type='checkbox'
+                name={field.name}
+                ref={field.ref}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                checked={field.value}
+              />
+              <span>Publish Course</span>
+            </label>
+          )}
+        />
 
         <Button type='submit' className='w-full cursor-pointer'>
           Update

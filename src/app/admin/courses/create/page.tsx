@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,14 +40,10 @@ export default function CreateCoursePage() {
 
   const handleSubmit = async (values: CourseFormValues) => {
     try {
-      await axiosInstance.post("/course/create", {
-        ...values,
-        description, // Use rich text value
-      });
+      await axiosInstance.post("/course/create", values);
       toast.success("Course created!");
       form.reset();
-      setDescription("");
-      router.push("/admin/courses"); // Redirect to courses page
+      router.push("/admin/courses");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to create course");
     }
@@ -64,13 +60,22 @@ export default function CreateCoursePage() {
         {/* Rich Text Editor for Description */}
         <div>
           <label className='block mb-2 font-medium'>Description</label>
-          <JoditEditor
-            value={description}
-            config={{
-              readonly: false, // Allow editing
-              placeholder: "Write course description...",
-            }}
-            onChange={setDescription}
+          <Controller
+            name='description'
+            control={form.control}
+            render={({ field }) => (
+              <div>
+                <label className='block mb-2 font-medium'>Description</label>
+                <JoditEditor
+                  value={field.value}
+                  config={{
+                    readonly: false,
+                    placeholder: "Write course description...",
+                  }}
+                  onChange={(content) => field.onChange(content)}
+                />
+              </div>
+            )}
           />
         </div>
 
@@ -93,7 +98,23 @@ export default function CreateCoursePage() {
         </Select>
 
         <Input placeholder='Thumbnail URL' {...form.register("thumbnail")} />
-
+        <Controller
+          name='isPublished'
+          control={form.control}
+          render={({ field }) => (
+            <label className='flex items-center space-x-2'>
+              <input
+                type='checkbox'
+                name={field.name}
+                ref={field.ref}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                checked={field.value}
+              />
+              <span>Publish Course</span>
+            </label>
+          )}
+        />
         <Button type='submit' className='w-full cursor-pointer'>
           Create
         </Button>
