@@ -7,6 +7,7 @@ import { CourseFormModal } from "@/common/courses/CourseFormModal";
 import { CourseTable } from "@/common/courses/CourseTable";
 import { CourseActions } from "@/common/courses/CourseActions";
 import axiosInstance from "@/lib/axiosInstance";
+import Link from "next/link";
 
 interface Course {
   _id: string;
@@ -65,9 +66,12 @@ export default function CoursesPage() {
 
   return (
     <div className='p-6'>
-      <div className='mb-4 flex justify-between items-center'>
-        <CourseFormModal onSubmit={handleCreateCourse} />
-      </div>
+      <Link
+        href='/admin/courses/create'
+        className='mb-4 inline-flex items-center justify-center rounded-md bg-gray-950 px-4 py-2 text-white font-medium hover:bg-gray-700 transition-colors'
+      >
+        Create New Course
+      </Link>
       <CourseTable
         data={courses}
         columns={[
@@ -86,7 +90,13 @@ export default function CoursesPage() {
             key: "actions",
             header: "Action",
             render: (_, row) => (
-              <CourseActions onEdit={() => alert(`Edit ${row.title}`)} />
+              // <CourseActions onEdit={() => alert(`Edit ${row.title}`)} />
+              <Link
+                href={`/admin/courses/edit/${row._id}`}
+                className='bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors'
+              >
+                Edit
+              </Link>
             ),
           },
         ]}
