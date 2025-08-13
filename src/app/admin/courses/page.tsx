@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import { CourseFormValues } from "@/lib/validation/courseSchema";
-import { CourseFormModal } from "@/common/courses/CourseFormModal";
 import { CourseTable } from "@/common/courses/CourseTable";
-import { CourseActions } from "@/common/courses/CourseActions";
 import axiosInstance from "@/lib/axiosInstance";
+import { CourseFormValues } from "@/lib/validation/courseSchema";
 import Link from "next/link";
 
 interface Course {
