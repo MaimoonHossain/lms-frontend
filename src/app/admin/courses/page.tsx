@@ -79,7 +79,13 @@ export default function CoursesPage() {
             key: "status",
             header: "Status",
             render: (value) => (
-              <span className='px-2 py-1 rounded bg-green-100 text-green-700 text-xs'>
+              <span
+                className={`${
+                  value === "Published"
+                    ? "px-2 py-1 rounded bg-green-100 text-green-700 text-xs"
+                    : "px-2 py-1 rounded bg-red-100 text-red-700 text-xs"
+                }`}
+              >
                 {value}
               </span>
             ),
