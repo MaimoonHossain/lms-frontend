@@ -11,6 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
+import toast from "react-hot-toast";
+import { ConfirmModal } from "@/common/reusable/ConfirmModal";
+import { set } from "zod";
 
 interface Course {
   _id: string;
@@ -24,6 +27,13 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<{
+    isOpen: boolean;
+    courseId: string | null;
+  }>({
+    isOpen: false,
+    courseId: null,
+  });
 
   const fetchCourses = async () => {
     try {
@@ -43,6 +53,19 @@ export default function CoursesPage() {
       setError((err as Error).message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await axiosInstance.delete(`/course/delete-course/${id}`);
+      if (res.status === 200) {
+        setCourses((prev) => prev.filter((course) => course._id !== id));
+        toast.success("Course deleted successfully");
+        setIsModalOpen({ isOpen: false, courseId: null });
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to delete course");
     }
   };
 
@@ -103,10 +126,9 @@ export default function CoursesPage() {
                     <Link href={`/admin/courses/edit/${row._id}`}>Edit</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => {
-                      // Add delete logic here
-                      alert(`Delete course: ${row.title}`);
-                    }}
+                    onClick={() =>
+                      setIsModalOpen({ isOpen: true, courseId: row._id })
+                    }
                   >
                     Delete
                   </DropdownMenuItem>
@@ -115,6 +137,18 @@ export default function CoursesPage() {
             ),
           },
         ]}
+      />
+
+      <ConfirmModal
+        isOpen={isModalOpen.isOpen}
+        onCancel={() => setIsModalOpen({ isOpen: false, courseId: null })}
+        onConfirm={() => {
+          if (isModalOpen.courseId) {
+            handleDelete(isModalOpen.courseId);
+          }
+        }}
+        title='Delete Course?'
+        description='This will permanently remove the course.'
       />
     </div>
   );
