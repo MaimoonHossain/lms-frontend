@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,15 @@ import {
 import { courseSchema, CourseFormValues } from "@/lib/validation/courseSchema";
 import axiosInstance from "@/lib/axiosInstance";
 
-// Dynamically import JoditEditor to avoid SSR issues
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
 export default function EditCoursePage() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const router = useRouter();
   const params = useParams();
@@ -45,14 +48,12 @@ export default function EditCoursePage() {
     },
   });
 
-  // Fetch course details
   useEffect(() => {
     async function fetchCourse() {
       try {
         const res = await axiosInstance.get(`course/get-course-by-id/${id}`);
         const data: CourseFormValues = res.data;
 
-        // Set react-hook-form values
         form.reset({
           title: data.title,
           subTitle: data.subTitle ?? "",
@@ -60,10 +61,11 @@ export default function EditCoursePage() {
           level: data.level,
           thumbnail: data.thumbnail,
           isPublished: data.isPublished ?? false,
-          description: "", // leave blank because we'll handle it separately
+          description: "", // leave blank; handled separately
         });
 
         setDescription(data.description || "");
+        setPreviewUrl(data.thumbnail as string); // show current thumbnail
         setError(null);
       } catch (err: any) {
         setError(
@@ -77,12 +79,34 @@ export default function EditCoursePage() {
     fetchCourse();
   }, [id]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (values: CourseFormValues) => {
     try {
-      await axiosInstance.patch(`course/edit/${id}`, {
-        ...values,
-        description, // send rich text
+      const formData = new FormData();
+      formData.append("title", values.title);
+      formData.append("subTitle", values.subTitle ?? "");
+      formData.append("description", description);
+      formData.append("category", values.category);
+      formData.append("level", values.level);
+      formData.append("isPublished", String(values.isPublished));
+
+      if (selectedFile) {
+        formData.append("thumbnail", selectedFile);
+      } else if (typeof values.thumbnail === "string") {
+        formData.append("thumbnailUrl", values.thumbnail); // keep old thumbnail
+      }
+
+      await axiosInstance.patch(`course/edit/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+
       toast.success("Course updated!");
       router.push("/admin/courses");
     } catch (err: any) {
@@ -101,7 +125,6 @@ export default function EditCoursePage() {
         <Input placeholder='Title' {...form.register("title")} />
         <Input placeholder='Subtitle' {...form.register("subTitle")} />
 
-        {/* Rich Text Editor for Description */}
         <div>
           <label className='block mb-2 font-medium'>Description</label>
           <JoditEditor
@@ -132,7 +155,19 @@ export default function EditCoursePage() {
           </SelectContent>
         </Select>
 
-        <Input placeholder='Thumbnail URL' {...form.register("thumbnail")} />
+        {/* Thumbnail Upload */}
+        <div className='flex flex-col gap-3'>
+          {previewUrl && (
+            <Image
+              src={previewUrl}
+              alt='Thumbnail Preview'
+              width={200}
+              height={120}
+              className='object-cover rounded-md'
+            />
+          )}
+          <Input type='file' accept='image/*' onChange={handleFileChange} />
+        </div>
 
         <Controller
           name='isPublished'

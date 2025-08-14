@@ -17,12 +17,14 @@ import toast from "react-hot-toast";
 import axiosInstance from "@/lib/axiosInstance";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // Dynamically import JoditEditor to avoid SSR issues
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
 export default function CreateCoursePage() {
-  const [description, setDescription] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const router = useRouter();
 
   const form = useForm<CourseFormValues>({
@@ -38,11 +40,35 @@ export default function CreateCoursePage() {
     },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file)); // temporary preview
+    }
+  };
+
   const handleSubmit = async (values: CourseFormValues) => {
     try {
-      await axiosInstance.post("/course/create", values);
+      const formData = new FormData();
+      formData.append("title", values.title);
+      formData.append("subTitle", values.subTitle ?? "");
+      formData.append("description", values.description);
+      formData.append("category", values.category);
+      formData.append("level", values.level);
+      formData.append("isPublished", String(values.isPublished));
+      if (selectedFile) {
+        formData.append("thumbnail", selectedFile);
+      }
+
+      await axiosInstance.post("/course/create", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       toast.success("Course created!");
       form.reset();
+      setSelectedFile(null);
+      setPreviewUrl("");
       router.push("/admin/courses");
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to create course");
@@ -64,17 +90,14 @@ export default function CreateCoursePage() {
             name='description'
             control={form.control}
             render={({ field }) => (
-              <div>
-                <label className='block mb-2 font-medium'>Description</label>
-                <JoditEditor
-                  value={field.value}
-                  config={{
-                    readonly: false,
-                    placeholder: "Write course description...",
-                  }}
-                  onChange={(content) => field.onChange(content)}
-                />
-              </div>
+              <JoditEditor
+                value={field.value}
+                config={{
+                  readonly: false,
+                  placeholder: "Write course description...",
+                }}
+                onChange={(content) => field.onChange(content)}
+              />
             )}
           />
         </div>
@@ -97,7 +120,20 @@ export default function CreateCoursePage() {
           </SelectContent>
         </Select>
 
-        <Input placeholder='Thumbnail URL' {...form.register("thumbnail")} />
+        {/* Thumbnail Upload */}
+        <div className='flex flex-col gap-3'>
+          {previewUrl && (
+            <Image
+              src={previewUrl}
+              alt='Thumbnail Preview'
+              width={200}
+              height={120}
+              className='object-cover rounded-md'
+            />
+          )}
+          <Input type='file' accept='image/*' onChange={handleFileChange} />
+        </div>
+
         <Controller
           name='isPublished'
           control={form.control}
@@ -115,6 +151,7 @@ export default function CreateCoursePage() {
             </label>
           )}
         />
+
         <Button type='submit' className='w-full cursor-pointer'>
           Create
         </Button>
