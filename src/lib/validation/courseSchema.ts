@@ -7,6 +7,7 @@ export const courseSchema = z.object({
   category: z.string().min(1, "Category is required"),
   level: z.enum(["beginner", "intermediate", "advanced"]),
   thumbnail: z.string(),
+  price: z.number().min(0, "Price must be a positive number"),
   isPublished: z.boolean(),
 });
 

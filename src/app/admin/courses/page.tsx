@@ -46,18 +46,6 @@ export default function CoursesPage() {
     fetchCourses();
   }, []);
 
-  const handleCreateCourse = (data: CourseFormValues) => {
-    setCourses((prev) => [
-      ...prev,
-      {
-        _id: Date.now().toString(), // Temporary id, replace with backend id after creation
-        title: data.title,
-        price: "0₹",
-        status: data.isPublished ? "Published" : "Draft",
-      },
-    ]);
-  };
-
   if (loading) return <p>Loading courses...</p>;
   if (error) return <p className='text-red-600'>Error: {error}</p>;
   if (!courses || courses.length === 0) return <p>No courses found.</p>;

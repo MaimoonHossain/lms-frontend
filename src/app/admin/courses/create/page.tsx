@@ -36,6 +36,7 @@ export default function CreateCoursePage() {
       category: "",
       level: "beginner",
       thumbnail: "",
+      price: 0,
       isPublished: false,
     },
   });
@@ -56,6 +57,7 @@ export default function CreateCoursePage() {
       formData.append("description", values.description);
       formData.append("category", values.category);
       formData.append("level", values.level);
+      formData.append("price", String(values.price));
       formData.append("isPublished", String(values.isPublished));
       if (selectedFile) {
         formData.append("thumbnail", selectedFile);
@@ -119,6 +121,13 @@ export default function CreateCoursePage() {
             <SelectItem value='advanced'>Advanced</SelectItem>
           </SelectContent>
         </Select>
+
+        <Input
+          type='number'
+          step='0.01'
+          placeholder='Price'
+          {...form.register("price", { valueAsNumber: true })}
+        />
 
         {/* Thumbnail Upload */}
         <div className='flex flex-col gap-3'>
