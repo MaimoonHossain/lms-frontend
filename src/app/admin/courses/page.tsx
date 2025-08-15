@@ -118,7 +118,7 @@ export default function CoursesPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end'>
                   <DropdownMenuItem>
-                    <Link href={`/admin/courses/${row._id}`}>
+                    <Link href={`/admin/courses/details/${row._id}`}>
                       Course Details
                     </Link>
                   </DropdownMenuItem>
