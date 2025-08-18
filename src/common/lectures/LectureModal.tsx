@@ -19,14 +19,12 @@ interface LectureModalProps {
   onClose: () => void;
   onSubmit: (data: {
     lectureTitle: string;
-    videoUrl: string;
-    publicId: string;
+    videoInfo: { videoUrl: string; publicId: string };
     isPreviewFree: boolean;
   }) => void;
   defaultValues?: {
     lectureTitle: string;
-    videoUrl: string;
-    publicId?: string;
+    videoInfo: { videoUrl: string; publicId: string };
     isPreviewFree: boolean;
   };
 }
@@ -39,8 +37,6 @@ export function LectureModal({
 }: LectureModalProps) {
   const [lectureTitle, setLectureTitle] = useState("");
   const [isPreviewFree, setIsPreviewFree] = useState(false);
-
-  // 🔹 one state for uploaded video info
   const [uploadVideoInfo, setUploadVideoInfo] = useState<{
     videoUrl: string;
     publicId: string;
@@ -56,8 +52,8 @@ export function LectureModal({
       setLectureTitle(defaultValues.lectureTitle || "");
       setIsPreviewFree(!!defaultValues.isPreviewFree);
       setUploadVideoInfo({
-        videoUrl: defaultValues.videoUrl || "",
-        publicId: defaultValues.publicId || "",
+        videoUrl: defaultValues.videoInfo?.videoUrl || "",
+        publicId: defaultValues.videoInfo?.publicId || "",
       });
     } else {
       setLectureTitle("");
@@ -125,8 +121,10 @@ export function LectureModal({
 
     onSubmit({
       lectureTitle,
-      videoUrl: uploadVideoInfo.videoUrl,
-      publicId: uploadVideoInfo.publicId,
+      videoInfo: {
+        videoUrl: uploadVideoInfo.videoUrl,
+        publicId: uploadVideoInfo.publicId,
+      },
       isPreviewFree,
     });
     onClose();
@@ -166,7 +164,7 @@ export function LectureModal({
             }
           />
 
-          {/* Public ID (read-only but copyable) */}
+          {/* Public ID */}
           <Input
             placeholder='Public ID'
             value={uploadVideoInfo?.publicId || ""}
