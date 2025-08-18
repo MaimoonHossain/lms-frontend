@@ -5,7 +5,16 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, User, Tag, Layers, DollarSign } from "lucide-react";
+import {
+  CalendarDays,
+  User,
+  Tag,
+  Layers,
+  DollarSign,
+  Loader2,
+  EyeOff,
+  UploadCloud,
+} from "lucide-react";
 import { z } from "zod";
 import { format } from "date-fns";
 import { useParams } from "next/dist/client/components/navigation";
@@ -13,6 +22,8 @@ import axiosInstance from "@/lib/axiosInstance";
 import { CourseFormValues, courseSchema } from "@/lib/validation/courseSchema";
 import LecturesTable from "@/common/lectures/LecturesTable";
 import { CreateLectureModal } from "@/common/lectures/LectureModal";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 
 interface CourseDetailsPageProps {
   // Replace 'any' with your inferred type from zod
@@ -33,6 +44,24 @@ const CourseDetailsPage: FC<CourseDetailsPageProps> = () => {
     } catch (err: any) {
     } finally {
       setLoading(false);
+    }
+  };
+
+  const togglePublishCourse = async () => {
+    try {
+      const res = await axiosInstance.patch(`course/toggle-publish/${id}`);
+      if (res.status === 200) {
+        setCourse((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            isPublished: !prev.isPublished,
+          };
+        });
+        toast.success("Course status updated successfully");
+      }
+    } catch (err: any) {
+      toast.error("Failed to update course status");
     }
   };
 
@@ -70,11 +99,33 @@ const CourseDetailsPage: FC<CourseDetailsPageProps> = () => {
             <Badge variant='outline' className='capitalize'>
               {course.level}
             </Badge>
-            {course.isPublished ? (
-              <Badge className='bg-green-600 text-white'>Published</Badge>
-            ) : (
-              <Badge className='bg-gray-400 text-white'>Draft</Badge>
-            )}
+            <Button
+              onClick={togglePublishCourse}
+              disabled={loading}
+              className={`flex items-center gap-2 ${
+                course.isPublished
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-gray-600 hover:bg-gray-700"
+              } text-white`}
+            >
+              {course.isPublished ? (
+                <EyeOff className='w-4 h-4' />
+              ) : (
+                <UploadCloud className='w-4 h-4' />
+              )}
+              {course.isPublished ? "Unpublish Course" : "Publish Course"}
+            </Button>
+
+            {/* Status Badge */}
+            <Badge
+              className={
+                course.isPublished
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-200 text-gray-700"
+              }
+            >
+              {course.isPublished ? "Published" : "Draft"}
+            </Badge>
           </div>
 
           <h1 className='text-3xl font-bold'>{course.title}</h1>
