@@ -19,12 +19,14 @@ interface LectureModalProps {
   onClose: () => void;
   onSubmit: (data: {
     lectureTitle: string;
-    videoInfo: { videoUrl: string; publicId: string };
+    videoUrl: string;
+    publicId: string;
     isPreviewFree: boolean;
   }) => void;
   defaultValues?: {
     lectureTitle: string;
-    videoInfo: { videoUrl: string; publicId: string };
+    videoUrl?: string;
+    publicId?: string;
     isPreviewFree: boolean;
   };
 }
@@ -51,10 +53,15 @@ export function LectureModal({
     if (defaultValues) {
       setLectureTitle(defaultValues.lectureTitle || "");
       setIsPreviewFree(!!defaultValues.isPreviewFree);
-      setUploadVideoInfo({
-        videoUrl: defaultValues.videoInfo?.videoUrl || "",
-        publicId: defaultValues.videoInfo?.publicId || "",
-      });
+
+      if (defaultValues.videoUrl && defaultValues.publicId) {
+        setUploadVideoInfo({
+          videoUrl: defaultValues.videoUrl,
+          publicId: defaultValues.publicId,
+        });
+      } else {
+        setUploadVideoInfo(null);
+      }
     } else {
       setLectureTitle("");
       setIsPreviewFree(false);
@@ -96,11 +103,10 @@ export function LectureModal({
         });
         toast.success("Video uploaded successfully");
       } else {
-        console.error("Error uploading video:", response.data?.error);
         toast.error("Error uploading video");
       }
     } catch (error) {
-      console.error("Upload failed:", error);
+      // console.error("Upload failed:", error);
       toast.error("Failed to upload video");
     } finally {
       setUploading(false);
@@ -114,29 +120,22 @@ export function LectureModal({
       toast.error("Lecture title is required");
       return;
     }
-    if (!uploadVideoInfo?.videoUrl || !uploadVideoInfo?.publicId) {
-      toast.error("Please upload a video");
-      return;
-    }
+    // if (!uploadVideoInfo?.videoUrl || !uploadVideoInfo?.publicId) {
+    //   toast.error("Please upload a video");
+    //   return;
+    // }
 
     onSubmit({
       lectureTitle,
-      videoInfo: {
-        videoUrl: uploadVideoInfo.videoUrl,
-        publicId: uploadVideoInfo.publicId,
-      },
+      videoUrl: uploadVideoInfo?.videoUrl ?? "",
+      publicId: uploadVideoInfo?.publicId ?? "",
       isPreviewFree,
     });
     onClose();
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onClose();
-      }}
-    >
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -152,7 +151,7 @@ export function LectureModal({
             onChange={(e) => setLectureTitle(e.target.value)}
           />
 
-          {/* Video URL (auto-filled) */}
+          {/* Video URL */}
           <Input
             placeholder='Video URL'
             value={uploadVideoInfo?.videoUrl || ""}

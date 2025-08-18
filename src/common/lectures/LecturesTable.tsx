@@ -16,10 +16,12 @@ import { Card } from "@/components/ui/card";
 import { LectureModal } from "./LectureModal";
 
 interface Lecture {
-  _id: string;
-  title: string;
-  duration: string;
-  isPublished: boolean;
+  _id?: string;
+  lectureTitle: string;
+  // duration: string;
+  isPreviewFree: boolean;
+  videoUrl?: string;
+  publicId?: string;
 }
 
 interface LecturesTableProps {
@@ -130,9 +132,9 @@ export default function LecturesTable({ courseId }: LecturesTableProps) {
               <thead className='bg-gray-100'>
                 <tr>
                   <th className='px-6 py-3 font-medium text-gray-700'>Title</th>
-                  <th className='px-6 py-3 font-medium text-gray-700'>
+                  {/* <th className='px-6 py-3 font-medium text-gray-700'>
                     Duration
-                  </th>
+                  </th> */}
                   <th className='px-6 py-3 font-medium text-gray-700'>
                     Status
                   </th>
@@ -150,15 +152,15 @@ export default function LecturesTable({ courseId }: LecturesTableProps) {
                     } hover:bg-gray-100 transition`}
                   >
                     <td className='px-6 py-4'>{lecture?.lectureTitle}</td>
-                    <td className='px-6 py-4'>{lecture?.duration || "N/A"}</td>
+                    {/* <td className='px-6 py-4'>{lecture?.duration || "N/A"}</td> */}
                     <td className='px-6 py-4'>
-                      {lecture?.isPublished ? (
+                      {lecture?.isPreviewFree ? (
                         <span className='px-2 py-1 rounded bg-green-100 text-green-700 text-xs'>
-                          Published
+                          Free Preview
                         </span>
                       ) : (
                         <span className='px-2 py-1 rounded bg-red-100 text-red-700 text-xs'>
-                          Draft
+                          Paid Preview
                         </span>
                       )}
                     </td>
@@ -172,7 +174,16 @@ export default function LecturesTable({ courseId }: LecturesTableProps) {
                         <DropdownMenuContent align='end'>
                           <DropdownMenuItem
                             onClick={() =>
-                              setModalState({ isOpen: true, lecture })
+                              setModalState({
+                                isOpen: true,
+                                lecture: {
+                                  _id: lecture._id,
+                                  lectureTitle: lecture.lectureTitle,
+                                  isPreviewFree: lecture.isPreviewFree,
+                                  videoUrl: lecture.videoUrl,
+                                  publicId: lecture.publicId,
+                                },
+                              })
                             }
                           >
                             <Pencil className='mr-2 h-4 w-4' /> Edit
@@ -181,7 +192,7 @@ export default function LecturesTable({ courseId }: LecturesTableProps) {
                             onClick={() =>
                               setIsDeleteModalOpen({
                                 isOpen: true,
-                                lectureId: lecture._id,
+                                lectureId: lecture._id ?? null,
                               })
                             }
                           >
