@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import axiosInstance from "@/lib/axiosInstance";
+import Link from "next/link";
 
 type Instructor = {
   name: string;
@@ -93,9 +94,12 @@ export default function OurCourses() {
               {/* Content */}
               <div className='p-5 space-y-4'>
                 {/* Title */}
-                <h3 className='text-xl font-semibold text-gray-900'>
+                <Link
+                  href={`/student/course-details/${course._id}`}
+                  className='text-xl font-semibold text-gray-900'
+                >
                   {course.title}
-                </h3>
+                </Link>
 
                 {/* Instructor + Level */}
                 <div className='flex items-center justify-between'>
